@@ -9,8 +9,8 @@ const upload = fInstance.upload('products');
 
 productRouter.get('/related', pInstance.showRelated);
 productRouter.get('/recommendations', pInstance.recommendations);
-productRouter.get('/:id', pInstance.show);
 productRouter.get('/', pInstance.index);
+productRouter.get('/:id', pInstance.show);
 productRouter.post('/', upload.array('images'), pInstance.store);
 productRouter.put('/:id', upload.array('images'), pInstance.update);
 productRouter.put('/:id/decrease', pInstance.decreaseQuantity);  // New Route

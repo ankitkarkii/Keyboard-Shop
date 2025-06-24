@@ -173,18 +173,6 @@ const AddProduct = () => {
         <form onSubmit={insertProduct} className="bg-white border-4 rounded-lg shadow mt-7 p-6">
           <div className="grid grid-cols-6 gap-6">
             <div className="col-span-6 sm:col-span-3">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">Product Name</label>
-              <input
-                onChange={inputChangeHandler}
-                value={product.name}
-                type="text"
-                name="name"
-                id="name"
-                className="input-class"
-                required
-              />
-            </div>
-            <div className="col-span-6 sm:col-span-3">
               <label htmlFor="categoryId" className="block text-sm font-medium text-gray-900 mb-2">Category</label>
               <select
                 name="categoryId"
@@ -200,12 +188,19 @@ const AddProduct = () => {
                 ))}
               </select>
             </div>
-            {renderCheckboxGroup("Connectivity", connectivityOptions, product.connectivity, 'connectivity')}
-            {renderCheckboxGroup("Lighting", lightingOptions, product.lighting, 'lighting')}
-            {renderCheckboxGroup("Polling Rate", pollingRateOptions, product.polling_rate, 'polling_rate')}
-            {renderCheckboxGroup("Color", colorOptions, product.color, 'color')}
-            {renderCheckboxGroup("Body Material", bodyMaterialOptions, product.body_material, 'body_material')}
-            <div className="col-span-3">
+            <div className="col-span-6 sm:col-span-3 border border-gray-300 rounded p-4 bg-gray-50">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">Product Name</label>
+              <input
+                onChange={inputChangeHandler}
+                value={product.name}
+                type="text"
+                name="name"
+                id="name"
+                className="input-class"
+                required
+              />
+            </div>
+            <div className="col-span-6 sm:col-span-3 border border-gray-300 rounded p-4 bg-gray-50">
               <label htmlFor="old_price" className="block text-sm font-medium text-gray-900 mb-2">Old Price</label>
               <input
                 type="number"
@@ -218,7 +213,7 @@ const AddProduct = () => {
                 required
               />
             </div>
-            <div className="col-span-3">
+            <div className="col-span-6 sm:col-span-3 border border-gray-300 rounded p-4 bg-gray-50">
               <label htmlFor="new_price" className="block text-sm font-medium text-gray-900 mb-2">New Price</label>
               <input
                 type="number"
@@ -231,7 +226,7 @@ const AddProduct = () => {
                 required
               />
             </div>
-            <div className="col-span-3">
+            <div className="col-span-6 sm:col-span-3 border border-gray-300 rounded p-4 bg-gray-50">
               <label htmlFor="quantity" className="block text-sm font-medium text-gray-900 mb-2">Quantity</label>
               <input
                 type="number"
@@ -244,7 +239,13 @@ const AddProduct = () => {
                 required
               />
             </div>
-            <div className="col-span-6">
+
+            {renderCheckboxGroup("Connectivity", connectivityOptions, product.connectivity, 'connectivity')}
+            {renderCheckboxGroup("Lighting", lightingOptions, product.lighting, 'lighting')}
+            {renderCheckboxGroup("Polling Rate", pollingRateOptions, product.polling_rate, 'polling_rate')}
+            {renderCheckboxGroup("Color", colorOptions, product.color, 'color')}
+            {renderCheckboxGroup("Body Material", bodyMaterialOptions, product.body_material, 'body_material')}
+                        <div className="col-span-6">
               <label htmlFor="images" className="block text-sm font-medium text-gray-900 mb-2">Images</label>
               <input
                 id="images"

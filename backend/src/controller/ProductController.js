@@ -84,11 +84,36 @@ class ProductController {
 
     async showRelated(req, res) {
         try {
-            const relatedProducts = await Product.find({})
+            const categoryId = req.query.categoryId;
+            const price = parseFloat(req.query.price);
+            const productId = req.query.productId;
+            let query = {};
+            if (categoryId) {
+                query.categoryId = categoryId;
+            }
+            if (productId) {
+                query._id = { $ne: productId };
+            }
+            // Fetch more products to sort by price difference
+            const relatedProducts = await Product.find(query)
                 .sort({ date: -1 })
-                .limit(4);
+                .limit(10);
     
-            const updatedProducts = relatedProducts.map(product => {
+            let sortedProducts = relatedProducts;
+            if (!isNaN(price)) {
+                sortedProducts = relatedProducts
+                    .map(product => ({
+                        product,
+                        priceDiff: Math.abs(product.new_price - price)
+                    }))
+                    .sort((a, b) => a.priceDiff - b.priceDiff)
+                    .slice(0, 4)
+                    .map(item => item.product);
+            } else {
+                sortedProducts = relatedProducts.slice(0, 4);
+            }
+    
+            const updatedProducts = sortedProducts.map(product => {
                 return {
                     ...product.toObject(),
                     image: product.image.map(img => `http://localhost:3000/products/${img}`)

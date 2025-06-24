@@ -15,12 +15,17 @@ const Product = () => {
   useEffect(()=>{
     API.get(`/product/${productId}`).then(res=>{
       setProduct(res.data);
-    })
 
-    API.get('/product/related').then(res=>{
-      setRelated(res.data)
+      // Fetch related products filtered by category
+      if (res.data && res.data.categoryId) {
+        API.get(`/product/related?categoryId=${res.data.categoryId}&price=${res.data.new_price}&productId=${res.data._id}`).then(relRes => {
+          setRelated(relRes.data);
+        });
+      } else {
+        setRelated([]);
+      }
     })
-  },[])
+  },[productId])
 
   return (
     <div>

@@ -17,7 +17,7 @@ function Recommendation(props) {
       const viewedProducts = getViewedProducts()
       try {
         // Call backend API with viewed product IDs as query param
-        const response = await axios.get('http://localhost:3000/api/products/recommendations', {
+        const response = await axios.get('http://localhost:3000/product/recommendations', {
           params: { viewed: viewedProducts.join(',') }
         })
         setRecommendedProducts(response.data)
