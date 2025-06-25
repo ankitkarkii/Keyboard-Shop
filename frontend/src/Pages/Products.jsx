@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import API from '../API';
 import { Link } from 'react-router-dom';
 import Fuse from 'fuse.js';
+import Cookies from 'js-cookie';
+import { AuthContext } from '../Context/AuthContext';
 
 const ProductsList = () => {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const { user } = useContext(AuthContext);
 
     useEffect(() => {
         API.get('/product')
@@ -30,6 +33,22 @@ const ProductsList = () => {
         ? fuse.search(searchTerm).map(result => result.item)
         : products;
 
+    // Helper to save search to cookie
+    const saveSearchToCookie = (product) => {
+        if (!user || !user.email || !product) return;
+        const searchData = {
+            user_email: user.email,
+            keyboard_price: product.new_price,
+            keyboard_category: product.categoryId, // or product.category if available
+            search_date: new Date().toISOString(),
+        };
+        Cookies.set('keyboard_search', JSON.stringify(searchData), {
+            expires: 14,
+            sameSite: 'Strict',
+            secure: true,
+        });
+    };
+
     return (
         <div className="p-8 max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold mb-6 text-gray-800">Browse Our Products</h1>
@@ -51,8 +70,7 @@ const ProductsList = () => {
                             className="w-full h-52 object-cover"
                         />
                         <div className="p-4">
-
-                            <Link to={`/product/${product._id}`}>
+                            <Link to={`/product/${product._id}`} onClick={() => saveSearchToCookie(product)}>
                                 <h2 className="text-lg font-semibold text-cyan-700 hover:underline cursor-pointer">
                                     {product.name}
                                 </h2>

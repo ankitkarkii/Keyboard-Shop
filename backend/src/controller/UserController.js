@@ -54,19 +54,32 @@ class UserController {
     async searchByEmail(req, res) {
         try {
             const { email, password } = req.body;
-            const user = await User.findOne({ email: email });
+            console.log(`Login attempt for email: ${email}`);
+            let user = await User.findOne({ email: email });
+            if (!user) {
+                console.log('User not found in users collection, checking admins...');
+                // Check admins collection if not found in users
+                const Admin = await import("../models/Admin.js");
+                user = await Admin.default.findOne({ email: email });
+            } else {
+                console.log('User found in users collection');
+            }
     
             if (user) {
                 if (user.password === password) {
-                    // req.session.userId = user._id;
-                    res.json("success");
+                    console.log('Password match successful');
+                    req.session.user = { id: user._id, email: user.email };
+                    res.json({ status: "success", user: { id: user._id, email: user.email } });
                 } else {
-                    res.json("Password Incorrect");
+                    console.log('Password incorrect');
+                    res.json({ status: "error", message: "Password Incorrect" });
                 }
             } else {
-                res.json("User not found");
+                console.log('User not found in both users and admins collections');
+                res.json({ status: "error", message: "User not found" });
             }
         } catch (err) {
+            console.error('Error during login:', err);
             res.status(500).json({ message: err.message });
         }
     }

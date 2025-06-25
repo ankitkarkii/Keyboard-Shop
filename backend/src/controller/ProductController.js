@@ -3,16 +3,39 @@ import Product from "../models/Product.js";
 class ProductController {
     async index(req, res) {
         try {
-            const productData = await Product.find({})
-            res.status(200).json(productData)
+            const productData = await Product.find({});
+            const updatedProducts = productData.map(product => {
+                return {
+                    ...product.toObject(),
+                    image: Array.isArray(product.image)
+                        ? product.image.map(img => `http://localhost:3000/products/${img}`)
+                        : product.image
+                };
+            });
+            res.status(200).json(updatedProducts);
         } catch (err) {
-            res.status(500).json({ message: err.message })
+            res.status(500).json({ message: err.message });
         }
     }
 
     // New recommendation endpoint
     async recommendations(req, res) {
         try {
+            // Personalized recommendation by category and price
+            const { category, price, productId } = req.query;
+            if (category && price) {
+                const minPrice = Number(price) * 0.7; // 30% below
+                const maxPrice = Number(price) * 1.3; // 30% above
+                const query = {
+                    categoryId: category,
+                    new_price: { $gte: minPrice, $lte: maxPrice }
+                };
+                if (productId) {
+                    query._id = { $ne: productId };
+                }
+                const products = await Product.find(query).limit(8);
+                return res.status(200).json(products);
+            }
             // Get viewed product IDs from query parameter as comma separated string
             const viewedIdsParam = req.query.viewed || '';
             const viewedIds = viewedIdsParam ? viewedIdsParam.split(',') : [];

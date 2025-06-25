@@ -1,4 +1,5 @@
 import Order from "../models/Orders.js";
+import Product from "../models/Product.js";
 
 class OrderController {
     async index(req, res) {
@@ -12,7 +13,11 @@ class OrderController {
 
     async store(req, res) {
         try {
-            await Order.create({ ...req.body });
+            const userId = req.session.user ? req.session.user.id : null;
+            if (!userId) {
+                return res.status(401).json({ message: "Unauthorized. Please log in." });
+            }
+            await Order.create({ ...req.body, orderedBy: userId });
             res.status(200).json({ success: true });
         } catch (err) {
             res.status(500).json({ message: err.message });
@@ -42,10 +47,20 @@ class OrderController {
     async delete(req, res) {
         const { id } = req.params;
         try {
-            const deletedOrder = await Order.findByIdAndDelete(id);
-            if (!deletedOrder) {
+            const orderToDelete = await Order.findById(id);
+            if (!orderToDelete) {
                 return res.status(404).json({ message: "Order not found" });
             }
+
+            // Add back the quantity to the product
+            const product = await Product.findById(orderToDelete.productId);
+            if (product) {
+                product.quantity += orderToDelete.quantity;
+                await product.save();
+            }
+
+            await Order.findByIdAndDelete(id);
+
             res.status(200).json({ success: true, message: "Order deleted successfully" });
         } catch (err) {
             res.status(500).json({ message: err.message });

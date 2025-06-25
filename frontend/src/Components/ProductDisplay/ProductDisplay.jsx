@@ -1,9 +1,11 @@
- import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { ShopContext } from '../../Context/ShopContext';
+import { AuthContext } from '../../Context/AuthContext';
 
 const ProductDisplay = (props) => {
     const { product } = props;
     const { addToCart } = useContext(ShopContext);
+    const { user } = useContext(AuthContext) || {};
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -55,6 +57,18 @@ const ProductDisplay = (props) => {
     useEffect(() => {
         if (product && product._id) {
             saveViewedProduct(product._id);
+            // Save product view to localStorage for recommendations
+            const viewData = {
+                productId: product._id,
+                price: product.new_price,
+                category: product.categoryId || product.category || '',
+                date: new Date().toISOString(),
+                user_email: user && user.email ? user.email : 'guest',
+            };
+            let views = JSON.parse(localStorage.getItem('recentKeyboardViews') || '[]');
+            // Remove any existing entry for this productId
+            views = [viewData, ...views.filter(v => v.productId !== product._id)].slice(0, 5); // keep last 5 unique
+            localStorage.setItem('recentKeyboardViews', JSON.stringify(views));
         }
     }, [product]);
 

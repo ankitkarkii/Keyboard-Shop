@@ -3,7 +3,11 @@ import API from '../API';
 export const ShopContext = createContext(null);
 
 const ShopContextProvider = (props) => {
-    const [cartItems, setCartItems] = useState({});
+    const [cartItems, setCartItems] = useState(() => {
+        // On initial load, try to get cart from localStorage
+        const savedCart = localStorage.getItem('cartItems');
+        return savedCart ? JSON.parse(savedCart) : {};
+    });
     const [allProducts, setAllProducts] = useState([]);
 
     useEffect(() => {
@@ -11,7 +15,10 @@ const ShopContextProvider = (props) => {
         API.get('/product') // Adjust the endpoint as per your backend route
             .then((response) => {
                 setAllProducts(response.data); // Assuming response.data is the list of products
-                setCartItems(getDefaultCart(response.data));
+                // Only set default cart if no saved cart in localStorage
+                if (!localStorage.getItem('cartItems')) {
+                    setCartItems(getDefaultCart(response.data));
+                }
             })
             .catch((error) => {
                 console.error('Error fetching products', error);
@@ -27,17 +34,25 @@ const ShopContextProvider = (props) => {
     };
 
     const addToCart = (itemId, quantity) => {
-        setCartItems((prev) => ({
-            ...prev,
-            [itemId]: prev[itemId] + quantity,
-        }));
+        setCartItems((prev) => {
+            const updatedCart = {
+                ...prev,
+                [itemId]: prev[itemId] + quantity,
+            };
+            localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+            return updatedCart;
+        });
     };
 
     const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({
-            ...prev,
-            [itemId]: Math.max(0, prev[itemId] - 1),
-        }));
+        setCartItems((prev) => {
+            const updatedCart = {
+                ...prev,
+                [itemId]: Math.max(0, prev[itemId] - 1),
+            };
+            localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+            return updatedCart;
+        });
     };
 
     const getTotalAmount = () => {
@@ -63,6 +78,15 @@ const ShopContextProvider = (props) => {
         return totalItem;
     };
 
+    const clearCart = () => {
+        const resetCart = {};
+        allProducts.forEach(product => {
+            resetCart[product._id] = 0;
+        });
+        setCartItems(resetCart);
+        localStorage.setItem('cartItems', JSON.stringify(resetCart));
+    };
+
     const contextValue = {
         allProducts,
         cartItems,
@@ -70,7 +94,13 @@ const ShopContextProvider = (props) => {
         removeFromCart,
         getTotalAmount,
         getTotalCartItems,
+        clearCart,
     };
+
+    // Optional: Sync cartItems to localStorage on changes (redundant but safe)
+    React.useEffect(() => {
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }, [cartItems]);
 
     return (
         <ShopContext.Provider value={contextValue}>

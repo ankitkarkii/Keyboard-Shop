@@ -95,6 +95,17 @@ const Navbar = () => {
                     >
                       {user.username}
                     </span>
+                    <button
+                      className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                      onClick={() => {
+                        logout();
+                        setMenu("");
+                        setUserMenuOpen(false);
+                        navigate("/");
+                      }}
+                    >
+                      Logout
+                    </button>
                     {isUserMenuOpen && (
                       <div 
                         className="absolute top-10 right-0 bg-white text-black p-2 rounded shadow-lg"

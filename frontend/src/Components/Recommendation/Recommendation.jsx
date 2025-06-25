@@ -3,7 +3,7 @@ import Item from '../Item/Item'
 import axios from 'axios'
 
 function Recommendation(props) {
-  const { products } = props
+  const { products, personalized, category } = props
   const [recommendedProducts, setRecommendedProducts] = useState([])
 
   // Helper function to get viewed products from localStorage
@@ -27,15 +27,20 @@ function Recommendation(props) {
         setRecommendedProducts(products.slice(0, 8))
       }
     }
-    fetchRecommendations()
-  }, [products])
+    // Only fetch if not personalized (personalized handled by Home)
+    if (!personalized) fetchRecommendations()
+    else setRecommendedProducts(products)
+  }, [products, personalized])
+
+  if (!recommendedProducts || recommendedProducts.length === 0) return null;
 
   return (
     <div id="recommended-products">
       <h1 className='text-4xl font-bold text-center mt-16 flex flex-col items-center text-gray-700'>
-        Recommended Products
+        {personalized ? 'Recommended for You' : 'Recommended Products'}
         <hr className='w-60 mt-2 h-1 bg-gray-700 border-0 rounded-lg' />
       </h1>
+     
       <div className='grid grid-cols-4 gap-8 my-16 px-7'>
         {recommendedProducts.map((item, i) => {
           const truncatedImage = Array.isArray(item.image) && item.image.length > 0 ? item.image[0] : '';
@@ -47,3 +52,4 @@ function Recommendation(props) {
 }
 
 export default Recommendation
+

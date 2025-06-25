@@ -19,11 +19,11 @@ const Login = () => {
       
       const res = await API.post('/admin/search', { email, password });
       
-      if (res.data === 'success') {
-        login();
+      if (res.data.status === 'success') {
+        login(res.data.user);
         navigate('/list');
       } else {
-        setError(res.data); 
+        setError(res.data.message || 'Login failed'); 
       }
     } catch (err) {
       setError('An error occurred while logging in.');

@@ -1,13 +1,14 @@
 import express from 'express'
 import OrderController from '../controller/OrderController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const orderRouter=express.Router();
 const oInstance=new OrderController;
 
 
-orderRouter.get('/',oInstance.index);
-orderRouter.post('/',oInstance.store);
-orderRouter.put('/:id',oInstance.update );
-orderRouter.delete('/:id',oInstance.delete);
+orderRouter.get('/', authMiddleware, oInstance.index);
+orderRouter.post('/', authMiddleware, oInstance.store);
+orderRouter.put('/:id', authMiddleware, oInstance.update );
+orderRouter.delete('/:id', authMiddleware, oInstance.delete);
 
 export default orderRouter;

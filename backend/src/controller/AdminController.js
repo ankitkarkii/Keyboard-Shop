@@ -26,12 +26,13 @@ class AdminController {
 
             if (admin) {
                 if (admin.password === password) {
-                    res.json("success");
+                    req.session.user = { id: admin._id, email: admin.email, role: 'admin' };
+                    res.json({ status: "success", user: { id: admin._id, email: admin.email, role: 'admin' } });
                 } else {
-                    res.json("Password Incorrect");
+                    res.json({ status: "error", message: "Password Incorrect" });
                 }
             } else {
-                res.json("Admin not found");
+                res.json({ status: "error", message: "Admin not found" });
             }
         } catch (err) {
             res.status(500).json({ message: err.message });

@@ -1,12 +1,9 @@
-import express from 'express'
-import AdminController from '../controller/AdminController.js'
+import express from 'express';
+import AdminController from '../controller/AdminController.js';
 
-const adminRouter=express.Router();
-const aInstance=new AdminController();
+const adminRouter = express.Router();
+const aInstance = new AdminController();
 
-adminRouter.get('/',aInstance.index);
-adminRouter.post('/search',aInstance.searchByEmail);
-adminRouter.post('/',aInstance.store);
-
+adminRouter.post('/search', aInstance.searchByEmail);
 
 export default adminRouter;

@@ -1,64 +1,83 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { ShopContext } from '../../Context/ShopContext';
+import { AuthContext } from '../../Context/AuthContext';
 import CryptoJS from "crypto-js";
 import { v4 as uuidv4 } from 'uuid';
 import API from '../../API';
 
 const CartItems = () => {
-    const { allProducts, cartItems, removeFromCart, getTotalAmount } = useContext(ShopContext);
-    
+    const { allProducts, cartItems, removeFromCart, getTotalAmount, clearCart } = useContext(ShopContext);
+    const { user } = useContext(AuthContext);
 
     const uid = uuidv4();
     const amount = getTotalAmount();
     const tax = Math.round((amount * 0.1) * 100) / 100;
     const totalamount = Math.round((amount + tax) * 100) / 100;
-    const userId = "USER_ID";  
+    const userId = user ? user.id : "guest";
 
     const message = `total_amount=${totalamount},transaction_uuid=${uid},product_code=EPAYTEST`;
     const esewasecret = import.meta.env.VITE_ESEWASECRET;
     const hash = CryptoJS.HmacSHA256(message, esewasecret);
     const signature = CryptoJS.enc.Base64.stringify(hash);
 
+    useEffect(() => {
+        const handleGlobalError = (event) => {
+            console.error('Global error caught:', event.error || event.reason || event);
+            // Here you can add logging to an external service if needed
+        };
+
+        window.addEventListener('error', handleGlobalError);
+        window.addEventListener('unhandledrejection', handleGlobalError);
+
+        return () => {
+            window.removeEventListener('error', handleGlobalError);
+            window.removeEventListener('unhandledrejection', handleGlobalError);
+        };
+    }, []);
+
     const handleOrder = async (event) => {
-        event.preventDefault();  
-        
+        event.preventDefault();
+
         const orders = allProducts
             .filter(e => cartItems[e._id] > 0)
             .map(e => ({
-                orderedBy: userId || "guest",
+                orderedBy: userId,
                 productId: e._id,
                 quantity: cartItems[e._id],
                 price: e.new_price * cartItems[e._id],
             }));
-    
-        for (const ord of orders) {
-            const order = {
-                orderedBy: ord.orderedBy,
-                productId: ord.productId,
-                quantity: ord.quantity,
-                price: ord.price
-            };
-            console.log(order.productId);
-            try {
+
+        try {
+            for (const ord of orders) {
+                const order = {
+                    orderedBy: ord.orderedBy,
+                    productId: ord.productId,
+                    quantity: ord.quantity,
+                    price: ord.price
+                };
+                console.log(order.productId);
                 const res = await API.post('/order', order);
                 if (res.data.success) {
                     const prodId = order.productId;
                     const quantity = order.quantity;
-                    
+
                     // Ensure quantity update is awaited
                     await API.put(`/product/${prodId}/decrease`, { quantity });
-                    
-                    // Submit the form after successful order and quantity update
-                    event.target.submit();
+                } else {
+                    throw new Error('Order failed');
                 }
-            } catch (error) {
-                console.error('Error placing order:', error);
-                alert("Failed to place order. Please try again.");
-            }  
+            }
+            // Clear the cart after successful order placement
+            clearCart();
+            console.log('Cart cleared after order placement');
+            // Submit the form after all orders and quantity updates succeed
+            event.target.submit();
+        } catch (error) {
+            console.error('Error placing order:', error);
+            alert("Failed to place order. Please try again.");
         }
     };
-    ;
-    
+
     return (
         <div className='p-5 flex flex-col items-center'>
             <table className='w-3/4'>
