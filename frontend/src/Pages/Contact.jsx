@@ -72,7 +72,7 @@ const Contact = () => {
           <div className="text-gray-700">
             <h3 className="text-lg font-medium mb-4">Contact Information</h3>
             <p className="mb-2">
-              <strong>Address:</strong> 1234 Skateboard St, Board City, BK 56789
+              <strong>Address:</strong> 1234 KeyboardCity St, Board City, BK 56789
             </p>
             <p className="mb-2">
               <strong>Phone:</strong> (123) 456-7890

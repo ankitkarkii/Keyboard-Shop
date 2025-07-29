@@ -11,7 +11,6 @@ import PaymentFailure from './Pages/PaymentFailure'
 import Login from './Pages/Login'
 import ProductsList from './Pages/Products'
 import Contact from './Pages/Contact'
-
 const RouterComponent = () => {
   return (
     <div>

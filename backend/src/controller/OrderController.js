@@ -11,6 +11,20 @@ class OrderController {
         }
     }
 
+    // Get orders for logged-in user
+    async userOrders(req, res) {
+        try {
+            const userId = req.session.user ? req.session.user.id : null;
+            if (!userId) {
+                return res.status(401).json({ message: "Unauthorized. Please log in." });
+            }
+            const orders = await Order.find({ orderedBy: userId });
+            res.status(200).json(orders);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
     async store(req, res) {
         try {
             const userId = req.session.user ? req.session.user.id : null;

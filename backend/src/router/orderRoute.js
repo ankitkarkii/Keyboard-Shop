@@ -7,6 +7,7 @@ const oInstance=new OrderController;
 
 
 orderRouter.get('/', authMiddleware, oInstance.index);
+orderRouter.get('/user', authMiddleware, oInstance.userOrders);
 orderRouter.post('/', authMiddleware, oInstance.store);
 orderRouter.put('/:id', authMiddleware, oInstance.update );
 orderRouter.delete('/:id', authMiddleware, oInstance.delete);
