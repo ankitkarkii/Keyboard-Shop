@@ -74,11 +74,7 @@ const Navbar = () => {
                     Products
                   </Link>
                 </li>
-                <li onClick={() => setMenu("contact")}>
-                  <Link to="/contact" className={`hover:text-red-600 ${menu === "contact" ? "text-red-600" : ""}`}>
-                    Contact
-                  </Link>
-                </li>
+                
               </ul>
             </div>
 

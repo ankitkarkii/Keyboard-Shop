@@ -64,6 +64,84 @@ class ProductController {
         }
     }
 
+    // Enhanced recommendation endpoint with association rules
+    async enhancedRecommendations(req, res) {
+        try {
+            const { productId, category, price, viewed } = req.query;
+            let recommendations = [];
+
+            // First, try to get association rule recommendations
+            if (productId) {
+                try {
+                    const AssociationRuleController = await import('./AssociationRuleController.js');
+                    const arController = new AssociationRuleController.default();
+                    
+                    // Create a mock request object for the association rule controller
+                    const mockReq = { params: { productId }, query: { limit: 4 } };
+                    const mockRes = {
+                        status: (code) => ({
+                            json: (data) => {
+                                if (code === 200 && data.recommendations) {
+                                    recommendations = data.recommendations;
+                                }
+                            }
+                        })
+                    };
+                    
+                    await arController.getRecommendations(mockReq, mockRes);
+                } catch (error) {
+                    console.log('Association rule recommendation failed, falling back to traditional method');
+                }
+            }
+
+            // If we don't have enough association rule recommendations, supplement with traditional method
+            if (recommendations.length < 4) {
+                let traditionalQuery = {};
+                
+                if (category && price) {
+                    const minPrice = Number(price) * 0.7;
+                    const maxPrice = Number(price) * 1.3;
+                    traditionalQuery = {
+                        categoryId: category,
+                        new_price: { $gte: minPrice, $lte: maxPrice }
+                    };
+                    if (productId) {
+                        traditionalQuery._id = { $ne: productId };
+                    }
+                } else if (viewed) {
+                    const viewedIds = viewed.split(',');
+                    const viewedProducts = await Product.find({ _id: { $in: viewedIds } });
+                    const viewedCategories = new Set(viewedProducts.map(p => p.categoryId).filter(Boolean));
+                    
+                    traditionalQuery = {
+                        categoryId: { $in: Array.from(viewedCategories) },
+                        _id: { $nin: viewedIds }
+                    };
+                }
+
+                const traditionalRecommendations = await Product.find(traditionalQuery)
+                    .sort({ date: -1 })
+                    .limit(8 - recommendations.length);
+
+                // Combine recommendations, avoiding duplicates
+                const existingIds = new Set(recommendations.map(p => p._id.toString()));
+                const uniqueTraditional = traditionalRecommendations.filter(p => !existingIds.has(p._id.toString()));
+                recommendations = [...recommendations, ...uniqueTraditional];
+            }
+
+            // If still no recommendations, get popular products
+            if (recommendations.length === 0) {
+                recommendations = await Product.find({})
+                    .sort({ date: -1 })
+                    .limit(8);
+            }
+
+            res.status(200).json(recommendations.slice(0, 8));
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
     async store(req, res) {
         try {
             let products = req.body;

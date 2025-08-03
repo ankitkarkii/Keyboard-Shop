@@ -9,6 +9,7 @@ import bodyMaterialRouter from './bodyMaterialRoute.js';
 import adminRouter from './adminRoute.js';
 import userRouter from './userRoute.js';
 import orderRouter from './orderRoute.js';
+import associationRuleRouter from './associationRuleRoute.js';
 
 const router=express.Router();
 
@@ -27,5 +28,6 @@ router.use('/bodyMaterial', bodyMaterialRouter);
 router.use('/admin',adminRouter);
 router.use('/user',userRouter);
 router.use('/order',orderRouter);
+router.use('/association-rules',associationRuleRouter);
 
 export default router;
