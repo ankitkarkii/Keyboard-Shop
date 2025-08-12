@@ -7,7 +7,7 @@ const Navbar = () => {
   const [menu, setMenu] = useState("home");
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
   const [isNavbarVisible, setNavbarVisible] = useState(true);
-  const { getTotalCartItems } = useContext(ShopContext);
+  const { getTotalCartItems, clearCart } = useContext(ShopContext);
   const { user, logout } = useContext(AuthContext);
 
   const navigate = useNavigate();
@@ -94,6 +94,7 @@ const Navbar = () => {
                     <button
                       className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                       onClick={() => {
+                        clearCart();
                         logout();
                         setMenu("");
                         setUserMenuOpen(false);

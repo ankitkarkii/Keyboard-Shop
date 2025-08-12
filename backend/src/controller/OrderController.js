@@ -31,8 +31,90 @@ class OrderController {
             if (!userId) {
                 return res.status(401).json({ message: "Unauthorized. Please log in." });
             }
-            await Order.create({ ...req.body, orderedBy: userId });
-            res.status(200).json({ success: true });
+            
+            const orderData = {
+                ...req.body,
+                orderedBy: userId,
+                paymentStatus: 'pending',
+                status: 'pending'
+            };
+            
+            const order = await Order.create(orderData);
+            res.status(200).json({ 
+                success: true, 
+                orderId: order._id,
+                paymentStatus: order.paymentStatus 
+            });
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    // Initiate payment for an order
+    async initiatePayment(req, res) {
+        try {
+            const { orderId } = req.params;
+            const userId = req.session.user ? req.session.user.id : null;
+            
+            if (!userId) {
+                return res.status(401).json({ message: "Unauthorized. Please log in." });
+            }
+
+            const order = await Order.findOne({ _id: orderId, orderedBy: userId });
+            if (!order) {
+                return res.status(404).json({ message: "Order not found" });
+            }
+
+            if (order.paymentStatus !== 'pending') {
+                return res.status(400).json({ message: "Payment already initiated or completed" });
+            }
+
+            order.paymentStatus = 'initiated';
+            order.paymentInitiatedAt = new Date();
+            await order.save();
+
+            res.status(200).json({ 
+                success: true, 
+                orderId: order._id,
+                paymentStatus: order.paymentStatus 
+            });
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    // Complete payment for an order
+    async completePayment(req, res) {
+        try {
+            const { orderId } = req.params;
+            const { transactionId, amount } = req.body;
+            const userId = req.session.user ? req.session.user.id : null;
+            
+            if (!userId) {
+                return res.status(401).json({ message: "Unauthorized. Please log in." });
+            }
+
+            const order = await Order.findOne({ _id: orderId, orderedBy: userId });
+            if (!order) {
+                return res.status(404).json({ message: "Order not found" });
+            }
+
+            if (order.paymentStatus === 'completed') {
+                return res.status(400).json({ message: "Payment already completed" });
+            }
+
+            order.paymentStatus = 'completed';
+            order.transactionId = transactionId;
+            order.paymentCompletedAt = new Date();
+            order.status = 'processing';
+            await order.save();
+
+            res.status(200).json({ 
+                success: true, 
+                orderId: order._id,
+                paymentStatus: order.paymentStatus,
+                transactionId: order.transactionId 
+            });
         } catch (err) {
             res.status(500).json({ message: err.message });
         }
